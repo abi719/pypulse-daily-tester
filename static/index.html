@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#080c14">
+  <title>PyPulse Daily | Daily 5-Question Python Arena</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            dark: {
+              900: '#080c14',
+              850: '#0c121e',
+              800: '#111827',
+              750: '#162032',
+              700: '#1f293d',
+              600: '#374151',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-dark-900 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Top Header Navigation -->
+  <header class="border-b border-dark-700 bg-dark-850/80 backdrop-blur sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateHome()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <i class="fa-brands fa-python text-dark-900 text-2xl font-bold"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">PyPulse</span>
+            <span class="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">Daily Arena</span>
+          </div>
+          <p class="text-[11px] text-slate-400 -mt-0.5">5 Questions • 45 Mins • Daily Mastery</p>
+        </div>
+      </div>
+
+      <!-- Center Test Timer (Only displayed when active in test) -->
+      <div id="header-timer-container" class="hidden items-center space-x-4 bg-dark-800 px-4 py-1.5 rounded-xl border border-dark-700 shadow-inner">
+        <div class="flex items-center space-x-2">
+          <i id="timer-icon" class="fa-regular fa-clock text-brand-400 animate-pulse text-base"></i>
+          <span class="text-xs font-medium text-slate-400">Time Left:</span>
+          <span id="countdown-display" class="font-mono font-bold text-lg text-brand-400 tracking-wider">45:00</span>
+        </div>
+        <div class="w-28 h-2 bg-dark-700 rounded-full overflow-hidden hidden sm:block">
+          <div id="timer-bar" class="h-full bg-brand-500 transition-all duration-1000 w-full"></div>
+        </div>
+      </div>
+
+      <!-- Right Navigation Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- User Badge & Menu (Logged in) -->
+        <div id="user-header-menu" class="hidden items-center space-x-3">
+          <nav class="hidden md:flex items-center space-x-1 mr-2 text-sm font-medium">
+            <button onclick="showSection('test-section')" class="nav-tab px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-dark-750 transition" id="nav-daily-test">
+              <i class="fa-solid fa-play text-brand-400 mr-1.5 text-xs"></i>Daily Test
+            </button>
+            <button onclick="showSection('progress-section')" class="nav-tab px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-dark-750 transition" id="nav-progress">
+              <i class="fa-solid fa-chart-line text-cyan-400 mr-1.5 text-xs"></i>Skill Mastery
+            </button>
+            <button onclick="showSection('mentor-section')" class="nav-tab px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-dark-750 transition" id="nav-mentor">
+              <i class="fa-solid fa-user-shield text-violet-400 mr-1.5 text-xs"></i>Mentor Review
+            </button>
+          </nav>
+
+          <div class="flex items-center space-x-2 pl-2 border-l border-dark-700">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xs font-bold shadow">
+              <span id="user-avatar-initial">L</span>
+            </div>
+            <div class="hidden sm:block text-left">
+              <div id="user-display-name" class="text-xs font-semibold leading-tight">Learner</div>
+              <span id="user-display-role" class="text-[10px] text-brand-400 font-mono capitalize">Student</span>
+            </div>
+            <button onclick="handleLogout()" title="Log Out" class="ml-2 text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-dark-750 transition">
+              <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Auth Button (Logged out) -->
+        <button id="header-login-btn" onclick="showSection('auth-section')" class="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-dark-900 transition shadow-md shadow-brand-500/20">
+          Sign In
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col">
+
+    <!-- ========================================== -->
+    <!-- 1. AUTHENTICATION SECTION (Login & Signup) -->
+    <!-- ========================================== -->
+    <section id="auth-section" class="flex-1 flex items-center justify-center py-8">
+      <div class="max-w-md w-full bg-dark-850 border border-dark-700 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+        
+        <!-- Ambient decorative glow -->
+        <div class="absolute -top-16 -right-16 w-36 h-36 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-36 h-36 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="text-center mb-6">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-brand-600 to-teal-400 flex items-center justify-center text-dark-900 text-3xl shadow-xl shadow-brand-500/20 mb-3">
+            <i class="fa-brands fa-python font-bold"></i>
+          </div>
+          <h2 id="auth-title" class="text-2xl font-bold tracking-tight text-white">Sign In to PyPulse</h2>
+          <p id="auth-subtitle" class="text-xs text-slate-400 mt-1">Start your 45-minute daily 5-question Python challenge</p>
+        </div>
+
+        <!-- Quick Credentials Switch Banner (Easy Access for Friend & Mentor) -->
+        <div class="mb-5 p-3 rounded-xl bg-dark-800 border border-dark-700">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>⚡ 1-Click Fast Login:</span>
+            <span class="text-[10px] text-brand-400">No hassle</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="quickFillCredentials('learner', 'python123')" class="px-3 py-2 rounded-lg bg-dark-750 hover:bg-dark-700 border border-dark-600/60 text-left transition text-xs group">
+              <div class="font-semibold text-emerald-400 group-hover:text-emerald-300 flex items-center">
+                <i class="fa-solid fa-user-graduate mr-1.5 text-[11px]"></i> Student
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-0.5">learner / python123</div>
+            </button>
+            <button type="button" onclick="quickFillCredentials('mentor', 'admin123')" class="px-3 py-2 rounded-lg bg-dark-750 hover:bg-dark-700 border border-dark-600/60 text-left transition text-xs group">
+              <div class="font-semibold text-violet-400 group-hover:text-violet-300 flex items-center">
+                <i class="fa-solid fa-chalkboard-user mr-1.5 text-[11px]"></i> Mentor / You
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-0.5">mentor / admin123</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Auth Form -->
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+          <div id="name-field-group" class="hidden">
+            <label class="block text-xs font-medium text-slate-300 mb-1">Your Full Name</label>
+            <input type="text" id="auth-name" placeholder="e.g. Alex Smith" class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Username</label>
+            <div class="relative">
+              <i class="fa-regular fa-user absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+              <input type="text" id="auth-username" required placeholder="Enter username" class="w-full bg-dark-800 border border-dark-700 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+              <input type="password" id="auth-password" required placeholder="Enter password" class="w-full bg-dark-800 border border-dark-700 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+            </div>
+          </div>
+
+          <div id="auth-error-msg" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5 flex items-center space-x-2">
+            <i class="fa-solid fa-circle-exclamation text-rose-400"></i>
+            <span id="auth-error-text">Invalid credentials</span>
+          </div>
+
+          <button type="submit" id="auth-submit-btn" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-600 hover:from-brand-600 hover:to-emerald-700 text-dark-900 font-bold text-sm shadow-lg shadow-brand-500/20 transition transform active:scale-[0.99]">
+            Sign In & Open Arena
+          </button>
+        </form>
+
+        <div class="mt-5 text-center text-xs text-slate-400">
+          <span id="auth-toggle-prompt">Don't have an account?</span>
+          <button type="button" onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-brand-400 hover:underline font-medium ml-1">Create an account</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 2. DAILY TEST ARENA (5 Questions, 45 Mins) -->
+    <!-- ========================================== -->
+    <section id="test-section" class="hidden flex-1 flex-col space-y-4">
+      
+      <!-- Top Test Status Bar -->
+      <div class="bg-dark-850 border border-dark-700 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center space-x-3">
+          <div class="px-3 py-1 rounded-xl bg-brand-500/10 border border-brand-500/30 text-brand-400 font-mono text-xs font-bold flex items-center space-x-1.5">
+            <i class="fa-solid fa-calendar-day"></i>
+            <span id="arena-day-badge">DAY 1</span>
+          </div>
+          <div>
+            <h1 class="text-base font-bold text-white flex items-center">
+              Daily Python Mastery Challenge
+              <span class="ml-2 text-xs font-normal text-slate-400">(5 Unseen Questions)</span>
+            </h1>
+            <p class="text-xs text-slate-400">Complete all 5 problems within the 45-minute window. No questions repeat!</p>
+          </div>
+        </div>
+
+        <!-- 5 Question Tabs Navigator -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 md:pb-0" id="question-navigator-pills">
+          <!-- Dynamically populated Q1..Q5 buttons -->
+        </div>
+
+        <!-- Submit Test Early Button -->
+        <div class="flex items-center space-x-2">
+          <button onclick="confirmSubmitTest()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-dark-900 font-bold text-xs shadow-md shadow-emerald-500/20 transition flex items-center space-x-2">
+            <i class="fa-solid fa-flag-checkered"></i>
+            <span>Finish & Submit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile View Switcher (Only visible on screens < lg) -->
+      <div class="flex lg:hidden bg-dark-800 p-1 rounded-xl border border-dark-700 shadow-md">
+        <button type="button" id="mobile-tab-problem" onclick="setMobilePane('problem')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-dark-700 text-brand-400 flex items-center justify-center space-x-1.5 transition shadow-sm">
+          <i class="fa-regular fa-file-lines"></i>
+          <span>1. Problem Objective</span>
+        </button>
+        <button type="button" id="mobile-tab-editor" onclick="setMobilePane('editor')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white flex items-center justify-center space-x-1.5 transition">
+          <i class="fa-solid fa-code"></i>
+          <span>2. Code & Run Tests</span>
+        </button>
+      </div>
+
+      <!-- Main Two-Column Split Workspace (Side-by-side on desktop, tabbed/clean on mobile) -->
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- LEFT COLUMN: Problem Details & Sample Test Cases -->
+        <div id="pane-problem" class="lg:col-span-5 flex flex-col bg-dark-850 border border-dark-700 rounded-2xl overflow-hidden shadow-xl max-h-[700px] lg:max-h-none">
+          
+          <!-- Problem Header Bar -->
+          <div class="p-3.5 sm:p-4 border-b border-dark-700/80 bg-dark-800/60 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span id="problem-num-badge" class="w-6 h-6 rounded-lg bg-brand-500/20 text-brand-400 font-mono text-xs font-bold flex items-center justify-center">1</span>
+              <h2 id="problem-title" class="font-bold text-xs sm:text-sm text-white truncate max-w-[180px] sm:max-w-none">Problem Title</h2>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="problem-topic-badge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Topic</span>
+              <span id="problem-diff-badge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Easy</span>
+            </div>
+          </div>
+
+          <!-- Problem Scrollable Description -->
+          <div class="flex-1 p-5 overflow-y-auto space-y-4 text-sm leading-relaxed text-slate-300">
+            <div>
+              <h3 class="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-2">Description</h3>
+              <div id="problem-description" class="prose prose-invert max-w-none text-slate-200 text-sm whitespace-pre-wrap">
+                Problem instructions will appear here...
+              </div>
+            </div>
+
+            <!-- Visible Sample Test Cases -->
+            <div class="pt-3 border-t border-dark-700/60">
+              <h3 class="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-2.5 flex items-center justify-between">
+                <span>Sample Test Cases</span>
+                <span class="text-[10px] text-slate-500 font-normal">Evaluated live</span>
+              </h3>
+              <div id="sample-cases-container" class="space-y-2.5">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+
+            <!-- Pro Tip / Hint Accordion -->
+            <div class="p-3 rounded-xl bg-dark-800/80 border border-dark-700/80">
+              <div class="flex items-center space-x-2 text-amber-400 text-xs font-semibold">
+                <i class="fa-regular fa-lightbulb"></i>
+                <span>Skill Guidance Note</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Remember to return the final computed value rather than just printing it, so the grading tests can evaluate the output.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Code Editor & Execution Results -->
+        <div id="pane-editor" class="lg:col-span-7 flex flex-col bg-dark-850 border border-dark-700 rounded-2xl overflow-hidden shadow-xl">
+          
+          <!-- Editor Controls Bar -->
+          <div class="px-4 py-2.5 border-b border-dark-700/80 bg-dark-800/80 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+              <span class="text-xs font-mono font-medium text-slate-400 ml-2">solution.py</span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <button onclick="resetCurrentCode()" title="Reset to starter code" class="px-2.5 py-1 rounded-lg bg-dark-750 hover:bg-dark-700 text-slate-300 text-xs font-medium transition border border-dark-600/50 flex items-center space-x-1">
+                <i class="fa-solid fa-arrow-rotate-left text-[10px]"></i>
+                <span>Reset</span>
+              </button>
+              <button onclick="runSampleTestCases()" id="run-cases-btn" class="px-3.5 py-1 rounded-lg bg-brand-500 hover:bg-brand-600 text-dark-900 text-xs font-bold transition flex items-center space-x-1.5 shadow-sm shadow-brand-500/20">
+                <i class="fa-solid fa-play text-[10px]"></i>
+                <span>Run Tests</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Code Editor Workspace -->
+          <div class="relative flex-1 bg-dark-900 flex overflow-hidden min-h-[300px]">
+            <!-- Line numbers gutter -->
+            <div id="editor-gutter" class="w-12 bg-dark-900 border-r border-dark-750 py-3 text-right pr-2 text-xs font-mono text-slate-600 select-none overflow-hidden">
+              1<br>2<br>3<br>4<br>5
+            </div>
+            <!-- Code text area -->
+            <textarea id="code-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+              class="flex-1 bg-transparent text-slate-100 font-mono text-xs sm:text-sm p-3 focus:outline-none resize-none leading-relaxed placeholder-slate-600 selection:bg-brand-500/30"
+              placeholder="# Write your Python code here..."></textarea>
+          </div>
+
+          <!-- Execution Output & Test Results Pane -->
+          <div class="h-48 border-t border-dark-700 bg-dark-850 flex flex-col">
+            <div class="px-4 py-2 border-b border-dark-750 bg-dark-800/60 flex items-center justify-between">
+              <div class="flex items-center space-x-2 text-xs font-semibold text-slate-300">
+                <i class="fa-solid fa-terminal text-brand-400 text-[11px]"></i>
+                <span>Test Execution Results</span>
+                <span id="run-status-pill" class="hidden text-[10px] font-mono px-2 py-0.5 rounded font-bold"></span>
+              </div>
+              <div class="text-[11px] text-slate-400">
+                Shortcut: <span class="font-mono bg-dark-700 px-1 py-0.5 rounded text-slate-300">Ctrl + Enter</span>
+              </div>
+            </div>
+
+            <div id="editor-output-container" class="flex-1 p-3 overflow-y-auto font-mono text-xs space-y-2 text-slate-300">
+              <div class="text-slate-500 italic">Click "Run Tests" or press Ctrl+Enter to test your Python function against sample cases.</div>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Navigation between Q1..Q5 -->
+          <div class="p-3 bg-dark-800/90 border-t border-dark-700 flex items-center justify-between">
+            <button onclick="prevQuestion()" id="prev-q-btn" class="px-3.5 py-1.5 rounded-xl bg-dark-750 hover:bg-dark-700 text-slate-300 text-xs font-semibold transition border border-dark-600/50 flex items-center space-x-1.5">
+              <i class="fa-solid fa-chevron-left text-[10px]"></i>
+              <span>Previous</span>
+            </button>
+            <div class="text-xs text-slate-400 font-medium">
+              Question <span id="current-q-index" class="text-white font-bold">1</span> of 5
+            </div>
+            <button onclick="nextQuestion()" id="next-q-btn" class="px-3.5 py-1.5 rounded-xl bg-dark-750 hover:bg-dark-700 text-slate-300 text-xs font-semibold transition border border-dark-600/50 flex items-center space-x-1.5">
+              <span>Next</span>
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 3. POST-TEST RESULTS & REVIEW SECTION      -->
+    <!-- ========================================== -->
+    <section id="results-section" class="hidden flex-1 flex-col space-y-6 max-w-5xl mx-auto w-full py-4">
+      
+      <!-- Big Scorecard Banner -->
+      <div class="bg-gradient-to-r from-dark-850 via-dark-800 to-dark-850 border border-dark-700 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-center">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-bold uppercase tracking-wider mb-3">
+          <i class="fa-solid fa-award"></i>
+          <span>Daily Test Completed</span>
+        </div>
+        
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+          Day <span id="result-day-num">1</span> Results Summary
+        </h2>
+        <p class="text-slate-400 text-sm max-w-md mx-auto mb-6">Here is how the test was performed, including test case results, submitted code, and model solutions.</p>
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+          <div class="bg-dark-750/70 border border-dark-700 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Score</div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-brand-400 mt-1" id="res-score-display">5 / 5</div>
+            <div class="text-[11px] text-slate-500" id="res-pct-display">100% Accuracy</div>
+          </div>
+
+          <div class="bg-dark-750/70 border border-dark-700 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Time Spent</div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-cyan-400 mt-1" id="res-time-display">24m 12s</div>
+            <div class="text-[11px] text-slate-500">out of 45:00</div>
+          </div>
+
+          <div class="bg-dark-750/70 border border-dark-700 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Current Streak</div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1 flex items-center justify-center space-x-1">
+              <span>🔥</span>
+              <span id="res-streak-display">1</span>
+            </div>
+            <div class="text-[11px] text-slate-500">Consecutive Days</div>
+          </div>
+
+          <div class="bg-dark-750/70 border border-dark-700 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Skill Level</div>
+            <div class="text-lg sm:text-xl font-bold text-violet-400 mt-2" id="res-level-display">Apprentice</div>
+            <div class="text-[11px] text-slate-500">Python Coder</div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button onclick="showSection('progress-section')" class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-dark-900 font-bold text-sm shadow-lg shadow-brand-500/20 transition flex items-center space-x-2">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>View Skill Progress Roadmap</span>
+          </button>
+          <button onclick="showSection('mentor-section')" class="px-5 py-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 text-white font-medium text-sm border border-dark-600 transition flex items-center space-x-2">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>Open Mentor Overview</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Detailed Question-by-Question Breakdown -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-list-check text-brand-400"></i>
+            <span>Detailed Question Review & Model Solutions</span>
+          </h3>
+          <span class="text-xs text-slate-400">Expand to view code, test outputs, & tips</span>
+        </div>
+
+        <div id="results-questions-accordion" class="space-y-3">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 4. SKILL PROGRESSION & ROADMAP SECTION     -->
+    <!-- ========================================== -->
+    <section id="progress-section" class="hidden flex-1 flex-col space-y-6 max-w-6xl mx-auto w-full py-4">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-chart-line text-cyan-400"></i>
+            <span>Python Skill Progression Hub</span>
+          </h2>
+          <p class="text-xs text-slate-400">Track mastery across 8 foundational Python competencies and daily streak</p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <div class="px-4 py-2 rounded-xl bg-dark-800 border border-dark-700 flex items-center space-x-2 text-xs">
+            <span class="text-amber-400 text-base">🔥</span>
+            <div>
+              <div class="font-bold text-white"><span id="hub-streak-count">1</span> Day Streak</div>
+              <div class="text-[10px] text-slate-400">Daily practice habit</div>
+            </div>
+          </div>
+          <div class="px-4 py-2 rounded-xl bg-dark-800 border border-dark-700 flex items-center space-x-2 text-xs">
+            <span class="text-brand-400 text-base">📚</span>
+            <div>
+              <div class="font-bold text-white"><span id="hub-completed-count">5</span> / <span id="hub-total-bank">30</span> Qs</div>
+              <div class="text-[10px] text-slate-400">Non-repeated solved</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personalized Recommendation Banner -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-950/40 via-dark-800 to-dark-800 border border-blue-500/30 flex items-start space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+          <i class="fa-solid fa-compass text-lg"></i>
+        </div>
+        <div>
+          <div class="text-xs uppercase font-bold text-blue-400 tracking-wider">AI Skill Recommendation</div>
+          <p id="hub-recommendation-text" class="text-sm text-slate-200 mt-0.5 font-medium">Keep taking the daily tests to build your baseline skill profile!</p>
+        </div>
+      </div>
+
+      <!-- Competency Matrix Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="skill-cards-grid">
+        <!-- Dynamically rendered topic mastery cards -->
+      </div>
+
+      <!-- Test History Timeline -->
+      <div class="bg-dark-850 border border-dark-700 rounded-2xl p-5 shadow-xl">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center space-x-2">
+          <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
+          <span>Historical Test Sessions</span>
+        </h3>
+        <div id="test-history-list" class="space-y-2">
+          <!-- List of past daily tests -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 5. MENTOR / REVIEWER OVERVIEW SECTION      -->
+    <!-- ========================================== -->
+    <section id="mentor-section" class="hidden flex-1 flex-col space-y-6 max-w-6xl mx-auto w-full py-4">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/30">Admin / Mentor</span>
+            <h2 class="text-2xl font-bold text-white">Friend Progress & Submission Review</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Inspect how your friend performed, their exact submitted code, pass/fail test cases, and time taken.</p>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="advanceStudentDay()" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition flex items-center space-x-1.5 shadow-md">
+            <i class="fa-solid fa-forward-step"></i>
+            <span>Advance to Next Day</span>
+          </button>
+          <button onclick="resetStudentProgress()" class="px-3.5 py-2 rounded-xl bg-rose-600/80 hover:bg-rose-600 text-white font-semibold text-xs transition flex items-center space-x-1.5 shadow-md">
+            <i class="fa-solid fa-rotate text-xs"></i>
+            <span>Reset Progress</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Student Overview Card -->
+      <div id="mentor-students-container" class="space-y-6">
+        <!-- Rendered via JS -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- CONFIRM SUBMISSION MODAL -->
+  <dialog id="submit-confirm-modal" class="bg-transparent backdrop:bg-dark-900/80 p-4 max-w-md w-full">
+    <div class="bg-dark-850 border border-dark-700 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold text-white">Submit Entire Daily Test?</h3>
+        <p class="text-xs text-slate-400 mt-1">This will finalize all 5 questions and grade your code against the full suite of hidden test cases. You cannot edit code after submitting.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeSubmitModal()" class="py-2.5 rounded-xl bg-dark-750 hover:bg-dark-700 text-slate-300 font-semibold text-xs border border-dark-600 transition">
+          Continue Editing
+        </button>
+        <button onclick="executeFinalSubmit()" class="py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-dark-900 font-bold text-xs shadow-lg shadow-brand-500/20 transition">
+          Yes, Submit Test
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="/js/data.js"></script>
+  <script src="/js/editor.js"></script>
+  <script src="/js/test_runner.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

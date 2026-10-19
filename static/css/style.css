@@ -1,0 +1,130 @@
+/* Custom Style Enhancements for PyPulse Daily Tester */
+
+/* Custom Thin Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0c121e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f293d;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Nav Tab Active State */
+.nav-tab.active {
+  background-color: #1f293d;
+  color: #34d399;
+  font-weight: 600;
+}
+
+/* Question Pill States in Test Arena */
+.q-pill {
+  transition: all 0.2s ease;
+  position: relative;
+}
+.q-pill.active {
+  border-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+.q-pill.solved {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+.q-pill.solved::after {
+  content: "✓";
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #10b981;
+  color: #080c14;
+  font-size: 9px;
+  font-weight: 800;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Code Editor Custom Styles */
+#code-editor {
+  tab-size: 4;
+  -moz-tab-size: 4;
+  white-space: pre;
+  word-wrap: normal;
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+#editor-gutter {
+  line-height: 1.6;
+}
+
+/* Test Execution Output Pre/Code */
+.output-log {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Native Dialog Polish */
+dialog {
+  border: none;
+  background: transparent;
+}
+dialog::backdrop {
+  background-color: rgba(8, 12, 20, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+/* Accordion Animation */
+.accordion-content {
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+/* Mobile Responsiveness & Touch Polish */
+html, body {
+  overflow-x: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#question-navigator-pills {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+#question-navigator-pills::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  #pane-editor.hidden, #pane-problem.hidden {
+    display: none !important;
+  }
+  #code-editor {
+    font-size: 14px !important;
+    min-height: 220px;
+  }
+}
+
+/* Pulsing Timer Critical Animation */
+@keyframes urgent-pulse {
+  0%, 100% {
+    color: #f43f5e;
+    transform: scale(1);
+  }
+  50% {
+    color: #fb7185;
+    transform: scale(1.05);
+  }
+}
+.timer-critical {
+  animation: urgent-pulse 1s infinite ease-in-out;
+}

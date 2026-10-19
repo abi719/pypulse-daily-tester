@@ -59,6 +59,15 @@ function showSection(sectionId) {
     loadMentorDashboard();
   }
 
+  // Update mobile bottom nav tab styling
+  document.querySelectorAll('.nav-tab-mobile').forEach(btn => {
+    btn.classList.remove('text-brand-400');
+    btn.classList.add('text-slate-400');
+  });
+  if (sectionId === 'test-section') document.getElementById('m-nav-test')?.classList.replace('text-slate-400', 'text-brand-400');
+  if (sectionId === 'progress-section') document.getElementById('m-nav-progress')?.classList.replace('text-slate-400', 'text-brand-400');
+  if (sectionId === 'mentor-section') document.getElementById('m-nav-mentor')?.classList.replace('text-slate-400', 'text-brand-400');
+
   // Toggle header timer visibility: only show during active test
   const timerContainer = document.getElementById('header-timer-container');
   if (timerContainer) {
@@ -183,10 +192,23 @@ function updateUserHeader() {
     } else {
       navMentor?.classList.add('hidden');
     }
+
+    // Toggle mobile bottom nav bar
+    const mobileBottomNav = document.getElementById('mobile-bottom-nav');
+    const mobileMentorBtn = document.getElementById('m-nav-mentor');
+    if (mobileBottomNav) {
+      mobileBottomNav.classList.remove('hidden');
+      if (window.currentUser.role === 'mentor') {
+        mobileMentorBtn?.classList.remove('hidden');
+      } else {
+        mobileMentorBtn?.classList.add('hidden');
+      }
+    }
   } else {
     headerMenu.classList.add('hidden');
     headerMenu.classList.remove('flex');
     loginBtn.classList.remove('hidden');
+    document.getElementById('mobile-bottom-nav')?.classList.add('hidden');
   }
 }
 
@@ -291,7 +313,7 @@ function renderQuestionPills() {
   window.currentTestState.questions.forEach((q, idx) => {
     const btn = document.createElement('button');
     btn.id = `q-pill-${q.id}`;
-    btn.className = `q-pill px-3 py-1.5 rounded-xl border border-dark-700 bg-dark-800 text-xs font-semibold flex items-center space-x-1.5 transition ${idx === window.currentQuestionIndex ? 'active' : ''}`;
+    btn.className = `q-pill px-2.5 sm:px-3 py-1.5 rounded-xl border border-dark-700 bg-dark-800 text-xs font-semibold flex items-center space-x-1 sm:space-x-1.5 transition shrink-0 ${idx === window.currentQuestionIndex ? 'active' : ''}`;
     
     // Status
     if (window.currentTestState.question_statuses[q.id] === 'solved') {
@@ -299,8 +321,9 @@ function renderQuestionPills() {
     }
 
     btn.innerHTML = `
-      <span class="w-4 h-4 rounded-full bg-dark-700 text-slate-300 text-[10px] flex items-center justify-center font-bold font-mono">${idx + 1}</span>
-      <span class="truncate max-w-[80px] sm:max-w-[110px] text-slate-300">${q.title}</span>
+      <span class="w-4 h-4 rounded bg-dark-700 text-slate-300 text-[10px] flex items-center justify-center font-bold font-mono">${idx + 1}</span>
+      <span class="font-bold sm:hidden text-slate-200">Q${idx + 1}</span>
+      <span class="hidden sm:inline truncate max-w-[100px] text-slate-300 font-medium">${q.title}</span>
     `;
 
     btn.onclick = () => switchQuestion(idx);
@@ -325,6 +348,14 @@ function switchQuestion(index) {
   document.querySelectorAll('.q-pill').forEach((pill, idx) => {
     pill.classList.toggle('active', idx === index);
   });
+
+  const counterEl = document.getElementById('current-q-pill-counter');
+  if (counterEl) counterEl.textContent = index + 1;
+
+  // On mobile screens, switch to problem view so the user reads the new question first
+  if (window.innerWidth < 1024 && typeof window.setMobilePane === 'function') {
+    window.setMobilePane('problem');
+  }
 
   // Update Left Column (Problem Details)
   document.getElementById('problem-num-badge').textContent = index + 1;
@@ -853,33 +884,50 @@ async function resetStudentProgress() {
 function setMobilePane(pane) {
   const pProb = document.getElementById('pane-problem');
   const pEdit = document.getElementById('pane-editor');
+  const pOutput = document.getElementById('pane-output');
+  const editorBox = document.getElementById('editor-workspace-box');
   const tabProb = document.getElementById('mobile-tab-problem');
   const tabEdit = document.getElementById('mobile-tab-editor');
+  const tabOutput = document.getElementById('mobile-tab-output');
 
   if (window.innerWidth >= 1024) {
     pProb?.classList.remove('hidden');
     pEdit?.classList.remove('hidden');
+    pOutput?.classList.remove('hidden');
+    editorBox?.classList.remove('hidden');
     return;
   }
+
+  // Reset tab active styling
+  [tabProb, tabEdit, tabOutput].forEach(t => {
+    t?.classList.remove('bg-dark-700', 'text-brand-400', 'shadow-sm');
+    t?.classList.add('text-slate-400');
+  });
 
   if (pane === 'problem') {
     pProb?.classList.remove('hidden');
     pEdit?.classList.add('hidden');
     tabProb?.classList.add('bg-dark-700', 'text-brand-400', 'shadow-sm');
     tabProb?.classList.remove('text-slate-400');
-    tabEdit?.classList.remove('bg-dark-700', 'text-brand-400', 'shadow-sm');
-    tabEdit?.classList.add('text-slate-400');
-  } else {
+  } else if (pane === 'editor') {
     pProb?.classList.add('hidden');
     pEdit?.classList.remove('hidden');
+    editorBox?.classList.remove('hidden');
+    pOutput?.classList.add('hidden'); // Hide output while coding on mobile to maximize typing room
     tabEdit?.classList.add('bg-dark-700', 'text-brand-400', 'shadow-sm');
     tabEdit?.classList.remove('text-slate-400');
-    tabProb?.classList.remove('bg-dark-700', 'text-brand-400', 'shadow-sm');
-    tabProb?.classList.add('text-slate-400');
 
     if (globalEditor) {
       globalEditor.updateGutter();
     }
+  } else if (pane === 'output') {
+    pProb?.classList.add('hidden');
+    pEdit?.classList.remove('hidden');
+    editorBox?.classList.add('hidden'); // Collapse editor to show test output clearly
+    pOutput?.classList.remove('hidden');
+    pOutput?.classList.add('h-auto', 'min-h-[300px]');
+    tabOutput?.classList.add('bg-dark-700', 'text-brand-400', 'shadow-sm');
+    tabOutput?.classList.remove('text-slate-400');
   }
 }
 
@@ -888,9 +936,13 @@ window.setMobilePane = setMobilePane;
 window.addEventListener('resize', () => {
   const pProb = document.getElementById('pane-problem');
   const pEdit = document.getElementById('pane-editor');
+  const pOutput = document.getElementById('pane-output');
+  const editorBox = document.getElementById('editor-workspace-box');
   if (window.innerWidth >= 1024) {
     pProb?.classList.remove('hidden');
     pEdit?.classList.remove('hidden');
+    pOutput?.classList.remove('hidden');
+    editorBox?.classList.remove('hidden');
   }
 });
 

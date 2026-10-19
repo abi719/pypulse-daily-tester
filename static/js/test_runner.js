@@ -36,6 +36,11 @@ async function runSampleTestCases() {
     // Render results
     renderTestResults(data, outputContainer, statusPill, q.id);
 
+    // If on mobile screen, auto-switch to output tab so user immediately sees results
+    if (window.innerWidth < 1024 && typeof window.setMobilePane === 'function') {
+      window.setMobilePane('output');
+    }
+
   } catch (err) {
     runBtn.disabled = false;
     runBtn.innerHTML = '<i class="fa-solid fa-play text-[10px]"></i><span>Run Tests</span>';
@@ -44,10 +49,17 @@ async function runSampleTestCases() {
 }
 
 function renderTestResults(data, container, statusPill, questionId) {
+  const mBadge = document.getElementById('mobile-output-badge');
   if (data.error) {
     statusPill.className = "text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30";
     statusPill.textContent = "Error";
     statusPill.classList.remove('hidden');
+
+    if (mBadge) {
+      mBadge.className = "text-[9px] font-mono px-1.5 py-0.2 rounded font-bold bg-rose-500/20 text-rose-400";
+      mBadge.textContent = "Err";
+      mBadge.classList.remove('hidden');
+    }
 
     container.innerHTML = `
       <div class="p-3 bg-rose-950/40 border border-rose-800/60 rounded-xl space-y-2">
@@ -65,6 +77,12 @@ function renderTestResults(data, container, statusPill, questionId) {
   // Render cases
   const allPassed = data.all_passed;
   statusPill.classList.remove('hidden');
+
+  if (mBadge) {
+    mBadge.className = allPassed ? "text-[9px] font-mono px-1.5 py-0.2 rounded font-bold bg-emerald-500/20 text-emerald-400" : "text-[9px] font-mono px-1.5 py-0.2 rounded font-bold bg-amber-500/20 text-amber-400";
+    mBadge.textContent = `${data.passed_count}/${data.total_count}`;
+    mBadge.classList.remove('hidden');
+  }
 
   if (allPassed) {
     statusPill.className = "text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";

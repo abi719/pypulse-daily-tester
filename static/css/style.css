@@ -105,12 +105,20 @@ html, body {
 }
 
 @media (max-width: 1023px) {
-  #pane-editor.hidden, #pane-problem.hidden {
-    display: none !important;
+  body {
+    padding-bottom: 64px; /* Space for mobile bottom bar */
+  }
+  .q-pill {
+    padding: 6px 10px;
+    font-size: 12px;
   }
   #code-editor {
     font-size: 14px !important;
-    min-height: 220px;
+    min-height: 240px;
+    line-height: 1.5;
+  }
+  #editor-workspace-box {
+    min-height: 240px;
   }
 }
 
